@@ -1,0 +1,63 @@
+{% extends 'flatpages/default.html'%}
+
+{% load custom_filters %}
+
+{% load custom_tags %}
+
+{% block title %}
+news
+{% endblock title %}
+
+{% block content %}
+    <h1>Поиск новостей</h1>
+    <form method="GET">
+        {{ filter.form }}
+        <input type="submit" value="Найти">
+    </form>
+<table>
+           <tr>
+               <td>Дата публикации</td>
+               <td>Автор статьи</td>
+               <td>Название статьи</td>
+               <td>Начало статьи</td>
+           </tr>
+
+           {% for article in filter.qs %}
+           <tr>
+               <td>{{ article.news_data|date:'d M Y'}}</td>
+                <td>{{ article.author}}</td>
+               <td>
+                   <a href="{% url 'news_detail' article.id %}">{{ article.name|censor }}</a>
+               </td>
+               <td>{{article.news_text|truncatechars:20|censor}}</td>
+               <td>
+                   <a href="{% url 'news_edit' article.id %}"><u>Редактировать</u></a>
+                   <a href="{% url 'news_delete' article.id %}"><u>Удалить</u></a>
+               </td>
+           </tr>
+           {% endfor %}
+    </table>
+{% if is_paginated %}
+
+    <!-- Если доступна предыдущая страница, то даём ссылку на неё и самую первую страницу -->
+    {% if page_obj.has_previous %}
+        <a href="?{% url_replace page=1 %}">First</a>
+        <a href="?{% url_replace page=page_obj.previous_page_number %}"><<<</a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+            <a>{{ num }}</a>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a href="?{% url_replace page=num %}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+
+    {% if page_obj.has_next %}
+        <a href="?{% url_replace page=page_obj.next_page_number %}">>>>></a>
+        <a href="?{% url_replace page=page_obj.paginator.num_pages %}">Last</a>
+    {% endif %}
+
+{% endif %}
+{% endblock content %}
